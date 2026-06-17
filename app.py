@@ -1,27 +1,53 @@
 from core.LLM_client import LLMClient
 from services.QuestionGenerator import QuestionGenerator
+from services.AnswerEvaluator import AnswerEvaluator
 
 
+llm = LLMClient(model_name="deepseek/deepseek-v4-flash") # Создаём объект клиента, который связывает нас с OpenRouter и задаём название модели для использования
 
-llm = LLMClient( # Создаём объект клиента, который связывает нас с OpenRouter и задаём название модели для использования
-    model_name = 'deepseek/deepseek-v4-flash'
-)
+generator = QuestionGenerator(llm)
+evaluator = AnswerEvaluator(llm)
 
-generator = QuestionGenerator(llm) # Создаём генератор вопроса. Там задаётся структура вопроса и ответа
 topic = "Ансамбли"
-note = """
-Случайный лес, градиентный бустинг —
-метод оценки параметров модели.
 
-Идея:
-Чем отличаются,
-Особенности каждого,
-принципы обучения.
+note = """
+Случайный лес и градиентный бустинг.
+
+Основные различия:
+- принцип обучения
+- достоинства
+- недостатки
 """
 
-questions = generator.generator_questions(topic=topic, note=note, num_questions=5) # Вызываем функцию генерации ответов модели
-for q in questions.questions: # выводим каждую деталь ответа отдеально
-    print(q.id) # АЙДИ ОТВЕТА 
-    print(q.question) # САМ ВОПРОС
-    print(q.difficulty) # СЛОЖНОСТЬ ВОПРОСА
-    print(q.question_type) # ТИП ВОПРОСА, ТЕОРИЯ КОД ИЛИ ЧЁТ ЕЩЁ
+questions = generator.generator_questions( # Создаём генератор вопроса. Там задаётся структура вопроса и ответ
+    topic=topic,
+    note=note,
+    num_questions=3
+)
+
+for question in questions.questions: # перебираем каждый вопрос отдеально
+
+    print("\n" + "=" * 50)
+    print(f"Вопрос {question.id}")
+    print(question.question)
+
+    user_answer = input("\nВаш ответ: ") # ждём ответ пользователя на вопрос
+
+    evaluation = evaluator.evaluate( # Проверка ответа пользователя, даём оценку и рецензии
+        topic=topic,
+        question=question.question,
+        answer=user_answer
+    )
+
+    print(f"\nОценка: {evaluation.score}/10")
+
+    print("\nЧто правильно:")
+    for item in evaluation.correct_parts:
+        print(f"- {item}")
+
+    print("\nЧто упущено:")
+    for item in evaluation.mistakes:
+        print(f"- {item}")
+
+    print("\nРекомендация:")
+    print(evaluation.feedback)
