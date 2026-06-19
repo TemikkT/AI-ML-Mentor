@@ -1,6 +1,6 @@
 from schemas.evaluation import Evalution
 from langchain_core.prompts import PromptTemplate
-from schemas.PromptTemplate import EVALUATION_PROMPT
+from config.prompts import EVALUATION_PROMPT
 
 """
 Данный класс написан для Генерации оценки на ответ пользователя
@@ -18,5 +18,8 @@ class AnswerEvaluator:
         prompt = EVALUATION_PROMPT.format(topic=topic,question=question,answer=answer)
         structured_llm = self.llm.get_structured_llm(Evalution) # вызываем метод ллм клиента для генерации ответа
         result = structured_llm.invoke(prompt) # выводим ответ, пока что без stream
+
+        print(result)
+        print(type(result))
 
         return result

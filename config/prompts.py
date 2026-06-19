@@ -1,6 +1,5 @@
 from langchain_core.prompts import PromptTemplate
 
-
 QUESTION_PROMPT = PromptTemplate.from_template( # пропишем структура промпта модели, чтобы не путаться в коде, будем хранить и подавать отдельно
 """
 Тема:

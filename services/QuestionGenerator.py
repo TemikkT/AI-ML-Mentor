@@ -1,6 +1,6 @@
 import json
 from schemas.questions import QuestionSet
-from schemas.PromptTemplate import QUESTION_PROMPT
+from config.prompts import QUESTION_PROMPT
 
 """
 Создаём класс вопроса и ответа модели. В инициализации подаётся наша модель LLM, которую мы создали в LLMClient
@@ -21,4 +21,9 @@ class QuestionGenerator:
         structured_llm = self.llm.get_structured_llm(QuestionSet) # Используем функцию построения ответа модели по нашей схеме, чтобы вызов был в виде JSON
         result = structured_llm.invoke(prompt) # Выводим то что нам сказала модель
 
+        print("=" * 50)
+        print(result)
+        print(type(result))
+        print("=" * 50)
+        
         return result

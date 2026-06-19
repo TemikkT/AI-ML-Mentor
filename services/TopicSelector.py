@@ -14,41 +14,32 @@ from schemas.Note import Note
 """
 
 class TopicSelector:
-    def __init__(self,history_manager):
+    def __init__(self, history_manager):
         self.history = history_manager
 
-    def choose_topic(self, notes: list[Note]) -> Note:
-        """
-        Выбирает тему для следующего занятия.
-        В итоге выбор происходит среди ВСЕХ тем,
-        но с разной вероятностью.
-        """
+    def choose_topic(self, notes: list[Note]) -> tuple[str, Note]:
+        if not notes: # если записок вообще никаких не нашли
+            raise ValueError(
+                "Список заметок пуст: не удалось выбрать тему. "
+                "Проверь путь к Obsidian vault (obsidian_path) и наличие .md файлов в нём."
+            )
+        
+        # темы берём из заметок — это источник правды о том, что вообще существует
+        all_topics = {note.title for note in notes} # перебираем вообще не топики которые есть в записке
+        statistics = self.history.get_statistics() # берём статистику всех топиков
 
-        stats = self.history.topic_statistics() # Получаем средние оценки пользователя
-
-        topics = []
-        weights = []
-
-        for index in range(0, len(notes)): # Проходимся по всем существующим заметкам
-
-            topics.append(notes[index].title)
-
-            if notes[index].title not in stats: # Если тема ещё ни разу не изучалась
-                weights.append(15) # Даем высокий вес, чтобы познакомить пользователя с новой темой
-
+        weights = [] # создаём массив для содержания весов топиков
+        topics = list(all_topics) # кортеж для содержания топиков
+        for topic in topics: # перебор топиков
+            if topic in statistics: # если у топика есть статистика, он есть в стории
+                weights.append(self.history.calculate_weight(topic, statistics[topic])) # Добываем его вес при помощи HistoryManager и добавляем в массив весов
             else:
-                score = stats[notes[index].title]
-                """
-                Чем ниже оценка,
-                тем выше вероятность повторения темы.
-                10 баллов -> вес 1
-                9 баллов -> вес 2
-                3 балла -> вес 8
-                """
-                weight = max(1, 11 - score)
-                weights.append(weight)
+                weights.append(15)  # если топик ещё на задавался, даём ему вес 15
 
-        # Выбираем одну тему с учетом рассчитанных весов
-        out_index = random.choices(population=range(len(topics)), weights=weights, k=1)[0]
+        selected_topic = random.choices(topics, weights=weights, k=1)[0] # выбираем рандомный топик, смотря на веса, чем вес выше, тем вероятно топика выше
+        selected_note = next((note for note in notes if note.title == selected_topic), None) # берём записку данного топика, пока что необработанная
 
-        return topics[out_index], notes[out_index], weights[out_index]
+        if selected_note is None: # если записка пустая, или её нету
+            raise ValueError(f"Note for topic '{selected_topic}' not found") # записка не была найдена
+
+        return selected_topic, selected_note # возвращаем топик и его записку

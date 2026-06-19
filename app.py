@@ -7,7 +7,6 @@ from services.ObsidianLoader import ObsidianLoader
 from services.MarkdownCleaner import MarkdownCleaner
 from services.VisionAnalyzer import VisionAnalyzer
 
-from schemas.training_result import TrainingResult
 from schemas.Note import Note
 import json
 import re
@@ -25,7 +24,7 @@ history = HistoryManager()
 selector = TopicSelector(history)
 
 """
-Выгружаем обсидиант и выбираем топик
+Выгружаем обсидиан и выбираем топик
 """
 loader = ObsidianLoader(r"C:\Users\user\Documents\obsidian") #Загрузка всего обсидиана
 notes = loader.load_notes() # берём наш класс Данных Note
@@ -53,7 +52,7 @@ for question in questions.questions:
     print(f"Сложность вопроса: {question.difficulty}")
 
     answer_human = input("Отвеечаааай бляха муха: ")
-    answers = evaluator.evaluate(topic = topic, question = clean_note.cleaned_content, answer = answer_human)
+    answers = evaluator.evaluate(topic = topic, question = question.question, answer = answer_human)
     
     print(f'Оценка: {answers.score}')
     print('_________')

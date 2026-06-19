@@ -1,136 +1,197 @@
 import json
 from pathlib import Path
-from collections import defaultdict
 from datetime import datetime
 
-from schemas.training_result import TrainingResult
+from schemas.training_result import QuestionResult, TrainingSession
+
+
 
 """
 Класс создания Json файла с историей ответов и оценки пользователя
+Это некий класс Аналитики истории, она нужна для более подробного адаптивного обучения
 """
 
 class HistoryManager:
-    def __init__(self, file_path='data/history.json'): # задаём в параметрах путь в json файлу где хранится информация о вопросе и ответах
-        self.file_path = Path(file_path)
+    def __init__(self, file_path: str = "data/history.json"): # получение файла со всеми сессиями, историей обучения
+        self.file_path = Path(file_path) 
 
-        if not self.file_path.exists(): # создаём этот файл если его несуществует
+        if not self.file_path.exists(): # если файл не существует, то осздаём его
             self.file_path.parent.mkdir(parents=True, exist_ok=True)
+
             with open(self.file_path, "w", encoding="utf-8") as f:
                 json.dump([], f)
 
     def load_history(self) -> list:
         """
-
-        Загружает всю историю обучения
-
+        Загружает историю обучения.
         """
-        with open(self.file_path,"r",encoding="utf-8") as f: # Выгружаем все данные из файла, чтобы обновлять его
+        with open(self.file_path, "r", encoding="utf-8") as f: # читаем файл и заружаем его в List
             return json.load(f)
 
-
-    def save_result(self, result: TrainingResult) -> None:
+    def save_session(self, session: TrainingSession):
         """
-        Сохраняет результаты после ответа в Json
+        Сохраняет завершённую тренировочную сессию.
         """
-        history = self.load_history() # забираем всю историю из файла
-        history.append(result.model_dump(mode="json")) # добавляем туда новую
+        history = self.load_history() # выгружаем всё из файла Load, на выходе получаем List TrainingSession не забываем
+        history.append(session.model_dump(mode="json")) # добавляем информацию сессии которую только что обработали
 
-        with open(self.file_path, "w",encoding="utf-8") as f: # сохраняем всё то что мы добавили
-            json.dump(history,f,ensure_ascii=False,indent=4)
+        with open(self.file_path, "w", encoding="utf-8") as f: # открываем файл и загружаем внутрь
+            json.dump(history, f, ensure_ascii=False, indent=4)
 
-    def topic_statistics(self, last_n: int = 5):
+    def get_topic_sessions(self, topic: str) -> list:
         """
-        Считает средний балл по последним last_n ответам.
+        Возвращает все сессии данной темы.
         """
-        history = self.load_history() # забираем всю историю из файла
-        topic_scores = defaultdict(list) # 
+        history = self.load_history() # выгружаем всё из файла Load, на выходе получаем List TrainingSession не забываем
+        return [ # перебираем каждую тему из истории. Обращаемся прямо как в Пандасе, берём именно topic в переборе и возвращаем его
+            session
+            for session in history
+            if session["topic"] == topic
+        ]
 
-        for record in history: # перебираем все словари из истории
-            topic_scores[record["topic"]].append(record["score"]) # забираем оттуда топик и его скор
+    def get_topic_scores(self, topic: str, last_n_sessions: int | None = None) -> list[int]:
+        """
+        Оценки пользователя по теме.
+        Если last_n_sessions указан, берутся только результаты
+        из последних N сессий (по finished_at), а не последних N ответов.
+        """
+
+        sessions = self.get_topic_sessions(topic) # сначала вызываем прошлую функцию для получения нужного топика
+        sessions = sorted(sessions, key=lambda s: s["finished_at"]) # сортировка по времени, чтобы взять и вправду последние
+
+        if last_n_sessions is not None:
+            sessions = sessions[-last_n_sessions:]
+        scores = []
+        for session in sessions: # проходимся по сессиям 
+            for result in session["results"]: # проходимся по всем результатам каждой сессии и забираем скор
+                scores.append(result["score"])
+
+        return scores
+
+    def get_average_score(self, topic: str, last_n: int = 2) -> float | None:
+        """
+        Средний балл по последним last_n сессиям темы.
+        """
+
+        scores = self.get_topic_scores(topic, last_n_sessions=last_n) # вызываем прошлую функцию и берём нужный нам топик и его последние 2 сессии
+        if not scores: # если же ничего нету, выводим None
+            return None
+
+        return round(sum(scores) / len(scores), 2) # Получаем средний скор
+
+    def topic_statistics(self, last_n: int = 2) -> dict[str, float]: # получаем последние 2 сессии, на выходе будет словарь. Название топика и среднее значение
+        """
+        Средний балл по каждой теме (по последним last_n сессиям).
+        """
+        history = self.load_history() # выдругаем сессию
+        topics = {session["topic"] for session in history} # находим все топики, за последние секции
+
         statistics = {}
 
-        for topic, scores in topic_scores.items(): # начинаем перепибрать топики и их скор
-            recent_scores = scores[-last_n:]
-            statistics[topic] = round(sum(recent_scores) / len(recent_scores),2) # берём среднее каждого топика
+        for topic in topics: # перебираем топики
+            average = self.get_average_score(topic, last_n) # берём топик и их последние 2 сессии
+            if average is not None: 
+                statistics[topic] = average # сохраняем это в статистике. В итоге получаем Топик и его статистика за последние 2 сессии
 
         return statistics
-    
-    def get_weak_topics(self,threshold: float = 7.0) -> list[str]:
+
+    def get_last_review(self, topic: str): # подаём название топика, который хотим найти
         """
-        Возвращает темы,
-        где средний балл ниже threshold.
-
-        (функция устарела, больше не используется, 
-        теперь работаем с весами топиков, 
-        но функция решил оставить, вдруг пригодится)
+        Когда тема повторялась последний раз.
         """
-        stats = self.topic_statistics() # забираем всю статистику о топиках
-        weak_topics = []
-        
-        for topic, avg_score in stats.items(): # перебираем их
-            if avg_score < threshold: # если средняя оценка ниже 0.7, то это слабый топик
-                weak_topics.append(topic)
+        sessions = self.get_topic_sessions(topic) # получаем все сессии с данными топиком
 
-        return weak_topics
-    
-    def get_topic_scores(self, topic: str, last_n: int = 5) -> list[int]:
-        """
-        Возвращает последние last_n оценок по теме.
-        """
-
-        history = self.load_history() # забираем всю историю из файла
-        scores = [ # перебираем все скоры на заданом топике и выбраем последние 5 оценок
-            record["score"]
-            for record in history
-            if record["topic"] == topic
-        ]
-
-        return scores[-last_n:]
-    
-    def get_topic_weight(self, topic: str, stats: dict) -> float:
-        """
-        Возвращает вес к каждой теме, чтобы даже среди слабых тем, чаще выбиралась самая слабая
-        """
-
-        if topic not in stats: # если топика нету в статике, отдаём ему изначальный вес 15
-            return 15
-
-        score = stats[topic] # достаём оценку на топик
-        knowledge_weight = 11 - score # определяем вес данного топика, чем ниже оценка, тем выше его вес
-        days = self.days_since_review(topic) # берём день, когда последний раз он задавался
-
-        if days is None: # если дня нету в статике, то время никак не будет влиять на вес
-            time_weight = 0
-        else:
-            time_weight = min(10, days * 0.15) # если он имеется, то берём день у множаем на 0.15
-        
-        return knowledge_weight + time_weight # суммируем весса (таким образом вес с каждым днём будет только больше)
-    
-    def last_review(self, topic: str):
-        """
-        Возвращает время когда вопрос был задан, создано для того, чтобы отслеживать какие вопросы давно не задавались
-        """
-
-        history = self.load_history() # забираем всю историю из файла
-
-        topic_history = [record # перебираем опять все оценки топика
-            for record in history
-            if record["topic"] == topic
-        ]
-
-        if not topic_history: # если у него нет оценок, выводим None
+        if not sessions:
             return None
 
-        last = topic_history[-1] # смотрим последний вопрос
+        sessions = sorted(sessions, key=lambda s: s["finished_at"]) # сортируем по времени
+        return datetime.fromisoformat(sessions[-1]["finished_at"]) # берём по времени нужный нам
 
-        return datetime.fromisoformat(last["timestamp"]) # выводим время когда был задан вопрос
-    
-    def days_since_review(self,topic: str):
+    def days_since_review(self, topic: str): # подаём название топика, который хотим найти
         """
-        Расчёт времени когда последний раз задавался топик, будет менять веса так же для старых топиков, которых уже успели забыть
+        Сколько дней прошло с последнего повторения темы.
         """
-        last = self.last_review(topic) # выводим время когда вопрос был последний раз задан, ну топик последний раз выбран
-        if last is None: # если информации нет, выводим None
+        last = self.get_last_review(topic) # Находим опять же последнюю сессия данного топика
+        if last is None:
             return None
-        else:
-            return (datetime.now() - last).days # иначе выводим разницу в днях, сколько дней прошло с его выбора
+
+        return (datetime.now() - last).days # считаем сколько дней прошло с урока с ним
+
+    def get_sessions_count(self, topic: str) -> int: # считаем количество топика в сеансах
+        """
+        Сколько раз проходили тему.
+        """
+        return len(self.get_topic_sessions(topic)) # выводим количество сеансов с данными топиком
+    
+
+    def get_statistics(self, last_n: int = 2) -> dict: # статистка по всем топикам, уже был подобдный запрос, но он считал именно по 1 топику
+        """
+        Возвращает статистику сразу по всем темам.
+        {
+            topic:
+            {
+                average_score,
+                sessions,
+                last_review,
+                days_since_review
+            }
+        }
+        """
+        history = self.load_history() # выгружаем историю обучения
+        topics = { # перебираем все топики пройдясь по сессиям
+            session["topic"]
+            for session in history
+        }
+
+        statistics = {}
+
+        for topic in topics: # перебираем топики и сохраняем в статистику информацию каждого из них
+            statistics[topic] = {
+                "average_score": self.get_average_score(topic, last_n),
+                "sessions": self.get_sessions_count(topic),
+                "last_review": self.get_last_review(topic),
+                "days_since_review": self.days_since_review(topic)
+            }
+
+        return statistics
+
+    def get_statistics_topic(self, topic: str, last_n: int = 2) -> dict: # Вернуть ПОЛНУЮ статистику по топику
+        """
+        Возвращает статистику сразу по одному топику
+        {
+            topic:
+            {
+                average_score,
+                sessions,
+                last_review,
+                days_since_review
+            }
+        }
+        """
+        statistics = {}
+
+        statistics[topic] = { # тут уже не делаем перебор, а просто берём один топик
+            "average_score": self.get_average_score(topic, last_n),
+            "sessions": self.get_sessions_count(topic),
+            "last_review": self.get_last_review(topic),
+            "days_since_review": self.days_since_review(topic)
+        }
+        return statistics
+
+    def calculate_weight(self, topic: str, stat: dict) -> float: # расчёт веса топика который подаётся
+        weight = 0 # изначально вес нулевой
+        average = stat["average_score"] # подаём ему статистику
+        weight += 11 - (average or 0) # расчитываем вес в зависимости от оценки
+        days = stat["days_since_review"] # берём день последнего
+        if days is not None:
+            weight += min(days * 0.25, 10) # перерасчитываем вес по дням
+
+        sessions = stat["sessions"] 
+        weight += max(0, 5 - sessions)
+
+        return max(weight, 1)
+
+    def get_topic_weight(self, topic: str) -> float: # взять вес определённого топика, нужно для TopicSelector
+        stat = self.get_statistics_topic(topic, 2) # Получаем статистику этого топика
+        return self.calculate_weight(topic, stat[topic]) # расчитываем его вес
+
