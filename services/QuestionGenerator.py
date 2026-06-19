@@ -2,8 +2,6 @@ import json
 from schemas.questions import QuestionSet
 from schemas.PromptTemplate import QUESTION_PROMPT
 
-from core.LLM_client import LLMClient
-
 """
 Создаём класс вопроса и ответа модели. В инициализации подаётся наша модель LLM, которую мы создали в LLMClient
 Далее функция генерации вопроса и получение ответа.

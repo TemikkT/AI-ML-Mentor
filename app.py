@@ -1,53 +1,67 @@
 from core.LLM_client import LLMClient
 from services.QuestionGenerator import QuestionGenerator
 from services.AnswerEvaluator import AnswerEvaluator
+from services.HistoryManager import HistoryManager
+from services.TopicSelector import TopicSelector
+from services.ObsidianLoader import ObsidianLoader
+from services.MarkdownCleaner import MarkdownCleaner
+from services.VisionAnalyzer import VisionAnalyzer
 
+from schemas.training_result import TrainingResult
+from schemas.Note import Note
+import json
+import re
 
-llm = LLMClient(model_name="deepseek/deepseek-v4-flash") # Создаём объект клиента, который связывает нас с OpenRouter и задаём название модели для использования
+cache_path = "data/image_cache.json"
+"""
+Создаем основные объекты
+"""
+llm = LLMClient(model_name="deepseek/deepseek-v4-flash")
 
 generator = QuestionGenerator(llm)
 evaluator = AnswerEvaluator(llm)
 
-topic = "Ансамбли"
+history = HistoryManager()
+selector = TopicSelector(history)
 
-note = """
-Случайный лес и градиентный бустинг.
-
-Основные различия:
-- принцип обучения
-- достоинства
-- недостатки
 """
+Выгружаем обсидиант и выбираем топик
+"""
+loader = ObsidianLoader(r"C:\Users\user\Documents\obsidian") #Загрузка всего обсидиана
+notes = loader.load_notes() # берём наш класс Данных Note
 
-questions = generator.generator_questions( # Создаём генератор вопроса. Там задаётся структура вопроса и ответ
-    topic=topic,
-    note=note,
-    num_questions=3
-)
+topic, notes_topic, weight = selector.choose_topic(notes)
+print(topic, weight)
 
-for question in questions.questions: # перебираем каждый вопрос отдеально
 
+cleaner = MarkdownCleaner(loader) # отчистим текст данной записки
+clean_note = cleaner.clean(notes_topic)
+
+with open(cache_path, "r", encoding="utf-8") as f: # достаём JSON с обработанными изображениями
+    image_note = json.load(f)
+
+pattern = re.compile(r"\[IMAGE:([^\]]+)\]")
+
+ # заменяем изображения на их обработанный текст
+clean_note.cleaned_content = pattern.sub(lambda m: image_note.get(m.group(1), {}).get("description", m.group(0)),clean_note.cleaned_content)
+
+questions = generator.generator_questions(topic = topic, note = clean_note.cleaned_content, num_questions=2)
+for question in questions.questions:
     print("\n" + "=" * 50)
     print(f"Вопрос {question.id}")
     print(question.question)
+    print(f"Сложность вопроса: {question.difficulty}")
 
-    user_answer = input("\nВаш ответ: ") # ждём ответ пользователя на вопрос
-
-    evaluation = evaluator.evaluate( # Проверка ответа пользователя, даём оценку и рецензии
-        topic=topic,
-        question=question.question,
-        answer=user_answer
-    )
-
-    print(f"\nОценка: {evaluation.score}/10")
-
-    print("\nЧто правильно:")
-    for item in evaluation.correct_parts:
-        print(f"- {item}")
-
-    print("\nЧто упущено:")
-    for item in evaluation.mistakes:
-        print(f"- {item}")
-
-    print("\nРекомендация:")
-    print(evaluation.feedback)
+    answer_human = input("Отвеечаааай бляха муха: ")
+    answers = evaluator.evaluate(topic = topic, question = clean_note.cleaned_content, answer = answer_human)
+    
+    print(f'Оценка: {answers.score}')
+    print('_________')
+    print('Что ответил верно: ')
+    print(answers.correct_parts)
+    print('_________')
+    print('Где ошибся: ')
+    print(answers.mistakes)
+    print('_________')
+    print(f'Фидбек:')
+    print(answers.feedback)
