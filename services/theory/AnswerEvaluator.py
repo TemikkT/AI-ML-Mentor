@@ -19,7 +19,4 @@ class AnswerEvaluator:
         structured_llm = self.llm.get_structured_llm(Evalution) # вызываем метод ллм клиента для генерации ответа
         result = structured_llm.invoke(prompt) # выводим ответ, пока что без stream
 
-        print(result)
-        print(type(result))
-
         return result

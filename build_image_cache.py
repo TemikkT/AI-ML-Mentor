@@ -1,8 +1,8 @@
 from core.LLM_client import LLMClient
 
-from services.ObsidianLoader import ObsidianLoader
-from services.MarkdownCleaner import MarkdownCleaner
-from services.VisionAnalyzer import VisionAnalyzer
+from services.common.ObsidianLoader import ObsidianLoader
+from services.common.MarkdownCleaner import MarkdownCleaner
+from services.common.VisionAnalyzer import VisionAnalyzer
 
 """
 Тут мы будем обрабатывать изображения, если повяться новые. запустим его вновь

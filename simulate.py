@@ -22,9 +22,9 @@ import shutil
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from services.HistoryManager import HistoryManager
-from services.StatisticsManager import ProgressAnalyzer
-from services.TopicSelector import TopicSelector
+from services.common.HistoryManager import HistoryManager
+from services.common.StatisticsManager import ProgressAnalyzer
+from services.theory.TopicSelector import TopicSelector
 
 
 DATA_DIR = Path(__file__).parent / "data"

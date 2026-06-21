@@ -1,6 +1,6 @@
 from pathlib import Path
 from schemas.Note import Note
-from config.theory_config import DOMAIN_MAPPING
+from config.config_for_question import DOMAIN_MAPPING
 
 """
 Класс для выгрузки контента из Обсидиана

@@ -1,13 +1,13 @@
 from core.LLM_client import LLMClient
-from services.QuestionGenerator import QuestionGenerator
-from services.AnswerEvaluator import AnswerEvaluator
-from services.HistoryManager import HistoryManager
-from services.TopicSelector import TopicSelector
-from services.ObsidianLoader import ObsidianLoader
-from services.MarkdownCleaner import MarkdownCleaner
-from services.VisionAnalyzer import VisionAnalyzer
+from services.common.QuestionGenerator import QuestionGenerator
+from services.theory.AnswerEvaluator import AnswerEvaluator
+from services.common.HistoryManager import HistoryManager
+from services.theory.TopicSelector import TopicSelector
+from services.common.ObsidianLoader import ObsidianLoader
+from services.common.MarkdownCleaner import MarkdownCleaner
+from services.common.VisionAnalyzer import VisionAnalyzer
 
-from config.theory_config import obsidian_path, cache_path, QUESTIONS_PER_SESSION
+from config.config_for_question import obsidian_path, cache_path, QUESTIONS_PER_SESSION
 from schemas.Note import Note
 from schemas.training_result import TrainingSession, QuestionResult
 from datetime import datetime

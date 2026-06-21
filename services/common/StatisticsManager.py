@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from services.HistoryManager import HistoryManager
+from services.common.HistoryManager import HistoryManager
 
 """
 Анализирует историю обучения пользователя.

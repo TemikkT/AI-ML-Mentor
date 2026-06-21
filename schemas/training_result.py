@@ -41,3 +41,18 @@ class TrainingSession(BaseModel):
     results: list[QuestionResult] = []
 
     average_score: float = 0
+
+
+
+""""
+Класс для хранения результата выполнения кода пользователя.
+Используется CodeExecutor и передаётся дальше в PracticeEvaluator,
+чтобы LLM видела не только сам код, но и что реально произошло при запуске.
+"""
+ 
+class ExecutionResult(BaseModel):
+    stdout: str = ""
+    stderr: str = ""
+ 
+    success: bool       # True, если код выполнился без ошибок (код возврата 0)
+    timed_out: bool      # True, если выполнение не успело завершиться за таймаут

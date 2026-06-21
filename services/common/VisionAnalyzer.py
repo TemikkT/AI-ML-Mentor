@@ -65,11 +65,11 @@ class VisionAnalyzer:
 
         for image in note.images: # перебор всех изображений
             if image.name in cache: # смотрим, какие изображения уже обработанны, встречаются и там и там
-                print(f"   ✓ Cache: {image.name}") # если они уже обработаны, то не будем проходится по ним дважды, пропускам их
+                print(f" +Cache: {image.name}") # если они уже обработаны, то не будем проходится по ним дважды, пропускам их
                 image.description = cache[image.name]["description"]
                 continue
 
-            print(f"   🤖 Анализ: {image.name}") # все другие же изображения, которых ещё нет в JSON
+            print(f" -Анализ: {image.name}") # все другие же изображения, которых ещё нет в JSON
 
             description = self.llm.describe_image(image.path, self.build_prompt(image)) # вызываем функцию describe_image в клиенте модели, чтобы она отправила запрос на OpenRouter
             image.description = description #  сохраняем то, что выдала модель в описание изображения
