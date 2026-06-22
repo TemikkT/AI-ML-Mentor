@@ -1,13 +1,14 @@
 from services.common.QuestionGenerator import QuestionGenerator
 from services.practice.PracticeEvaluator import PracticeEvaluator
 from services.common.HistoryManager import HistoryManager
-from services.practice.PracticeSelector import PracticeSelector
 from services.common.ObsidianLoader import ObsidianLoader
 from services.common.MarkdownCleaner import MarkdownCleaner
 from services.prompt_template.CodeExecutor import CodeExecutor
 
+from services.practice.PracticeEloManager import PracticeEloProgressManager
+
 from config.config_for_question import cache_path
-from config.config_for_question import PRACTICE_QUESTIONS_PER_SESSION, EXECUTABLE_TOPICS
+from config.elo_config import PRACTICE_QUESTIONS_PER_SESSION, EXECUTABLE_TOPICS
 from schemas.Note import Note
 from schemas.training_result import TrainingSession, QuestionResult
 from datetime import datetime
@@ -15,9 +16,22 @@ import json
 import re
 
 """
-Аналог TheoryTrainer для тренажёра решения задач (SQL, Pandas, Python).
+PracticeTrainer — стейт-машина сессии тренажёра решения задач
+(SQL, Pandas, Python) с Elo-системой сложности.
 
-Отличие от TheoryTrainer — один дополнительный шаг в submit_answer:
+Логика простая, без адаптивного учёта прошлых ошибок:
+- пользователь сам выбирает тему для практики (передаёт её явным
+  аргументом в Start_session) — никакого случайного выбора темы
+  и никакой системы открытия тем нет, все темы доступны всегда.
+- у каждой темы есть свой рейтинг (PracticeEloProgressManager), который
+  растёт или падает в зависимости от оценки ответа.
+- сложность следующего вопроса определяется текущим рейтингом темы
+  (чем выше рейтинг — тем сложнее вопрос), см. PRACTICE_DIFFICULTY_RATING_BOUNDS.
+- рейтинг обновляется немедленно после каждого ответа (в submit_answer),
+  чтобы при нескольких вопросах в одной сессии сложность могла меняться
+  на ходу.
+
+Отличие от TheoryTrainer — дополнительный шаг в submit_answer:
 если текущая тема входит в EXECUTABLE_TOPICS (см. practice_config.py),
 ответ пользователя (код) сначала прогоняется через CodeExecutor,
 и результат выполнения передаётся в PracticeEvaluator вместе с кодом.
@@ -35,29 +49,41 @@ import re
 
 class PracticeTrainer:
     def __init__(self, loader: ObsidianLoader, cleaner: MarkdownCleaner,
-                 topic_selector: PracticeSelector, generator: QuestionGenerator,
+                 progress_manager: PracticeEloProgressManager, generator: QuestionGenerator,
                  evaluator: PracticeEvaluator, history: HistoryManager,
                  code_executor: CodeExecutor):
         self.current_note = None
         self.questions = []
         self.current_question = 0
+
+        self.current_difficulty = None
+
         self.session = None
         self.current_topic = None
 
         self.loader = loader
         self.cleaner = cleaner
-        self.topic_selector = topic_selector
+        self.progress = progress_manager
         self.generator = generator
         self.evaluator = evaluator
         self.history = history
         self.code_executor = code_executor
 
-    def Start_session(self):
+    def Start_session(self, topic: str):
+
         self.questions = []
         self.current_question = 0
+        self.current_topic = topic
 
         notes = self.loader.load_notes()
-        self.current_topic, self.current_note = self.topic_selector.choose_topic(notes)
+
+        self.current_note = next((note for note in notes if note.title == topic), None)
+
+        if self.current_note is None:
+            raise ValueError(
+                f"Заметка для темы '{topic}' не найдена в Obsidian vault. "
+                "Проверь, что название темы точно совпадает с title заметки."
+            )
 
         self.current_note = self.cleaner.clean(self.current_note)
 
@@ -73,10 +99,13 @@ class PracticeTrainer:
         self.current_note.cleaned_content = pattern.sub(lambda m: image_note.get(m.group(1), \
                         {}).get("description", m.group(0)), self.current_note.cleaned_content)
 
+        self.current_difficulty = self.progress.get_difficulty_for_topic(topic)
+
         self.questions = self.generator.generator_questions(
             topic=self.current_topic,
             note=self.current_note.cleaned_content,
-            num_questions=1
+            num_questions=1,
+            difficulty=self.current_difficulty,
         )
 
         self.session = TrainingSession(topic=self.current_topic, started_at=datetime.now(), results=[])
@@ -95,10 +124,6 @@ class PracticeTrainer:
         execution_result = None
         if self.current_topic in EXECUTABLE_TOPICS:
             execution_result = self.code_executor.run(answer)
-
-        print("=" * 70)
-        print("DEBUG execution_result:", execution_result)
-        print("=" * 70)
 
         review = self.evaluator.evaluate(
             topic=self.current_topic,
@@ -121,7 +146,17 @@ class PracticeTrainer:
 
         self.session.results.append(result)
 
-        return review
+        # Рейтинг обновляется немедленно после каждого ответа — следующий
+        # вопрос в этой же сессии (если он будет) уже учтёт новый рейтинг
+        # и, возможно, новую сложность.
+        updated = self.progress.apply_score(
+            topic=self.current_topic,
+            score=review.score,
+            difficulty=self.current_difficulty
+        )
+        self.current_difficulty = self.progress.get_difficulty_for_topic(self.current_topic)
+
+        return review, updated
 
     def next_question(self):
         self.current_question += 1
