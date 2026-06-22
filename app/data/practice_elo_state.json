@@ -1,0 +1,11 @@
+{
+    "SQL - Postgres": {
+        "rating": 0
+    },
+    "Pandas - Основы DataFrame": {
+        "rating": 3000
+    },
+    "Python база": {
+        "rating": 2500
+    }
+}

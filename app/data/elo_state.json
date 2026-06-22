@@ -1,0 +1,110 @@
+{
+    "Python база": {
+        "rating": 116,
+        "unlocked": true
+    },
+    "Статистика": {
+        "rating": 250,
+        "unlocked": true
+    },
+    "Pandas - Основы DataFrame": {
+        "rating": 88,
+        "unlocked": true
+    },
+    "SQL - Postgres": {
+        "rating": 250,
+        "unlocked": true
+    },
+    "Работа с Git и GitHub": {
+        "rating": 250,
+        "unlocked": true
+    },
+    "Метрики регрессии": {
+        "rating": 250,
+        "unlocked": true
+    },
+    "Логистическая регрессия": {
+        "rating": 250,
+        "unlocked": true
+    },
+    "Регуляризация - Линейная регрессия": {
+        "rating": 250,
+        "unlocked": true
+    },
+    "Метрики классификации": {
+        "rating": 250,
+        "unlocked": true
+    },
+    "KNN ближайшие соседи": {
+        "rating": 250,
+        "unlocked": true
+    },
+    "Функции активации и функции потерь": {
+        "rating": 250,
+        "unlocked": true
+    },
+    "SVM Метод опорных векторов": {
+        "rating": 250,
+        "unlocked": true
+    },
+    "Наивный Байес": {
+        "rating": 250,
+        "unlocked": true
+    },
+    "Дерево решений": {
+        "rating": 250,
+        "unlocked": true
+    },
+    "Случайный лес": {
+        "rating": 250,
+        "unlocked": true
+    },
+    "Бустинг и Градиентный бустинг": {
+        "rating": 250,
+        "unlocked": true
+    },
+    "K-means Кластеризация": {
+        "rating": 250,
+        "unlocked": true
+    },
+    "Иерархическая кластеризация": {
+        "rating": 250,
+        "unlocked": true
+    },
+    "Нейронные сети": {
+        "rating": 250,
+        "unlocked": true
+    },
+    "Обучение нейронных сетей back propagation": {
+        "rating": 250,
+        "unlocked": true
+    },
+    "Оптимизаторы под функции потерь": {
+        "rating": 250,
+        "unlocked": true
+    },
+    "Сверточные нейронные сети (CNN)": {
+        "rating": 250,
+        "unlocked": true
+    },
+    "YOLO модель, что умеет и как работать": {
+        "rating": 250,
+        "unlocked": true
+    },
+    "NLP Извлечение признаков": {
+        "rating": 250,
+        "unlocked": true
+    },
+    "NLP Трансформер": {
+        "rating": 250,
+        "unlocked": true
+    },
+    "LangChain": {
+        "rating": 0,
+        "unlocked": false
+    },
+    "AI Agents - LLM": {
+        "rating": 0,
+        "unlocked": false
+    }
+}
