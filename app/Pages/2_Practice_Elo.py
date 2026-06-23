@@ -5,11 +5,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import streamlit as st
 
-from app.bootstrap import build_practice_trainer, get_practice_elo_progress
+from app.bootstrap import build_practice_trainer, get_practice_elo_progress, get_llm_client
+from app.chat_helper import render_chat_helper
+from app.ui.theme import apply_glass_theme, signal_indicator, glass_card_open, glass_card_close, glass_divider
 from config.elo_config import PRACTICE_TOPICS
 
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-st.set_page_config(page_title="Практика (Elo)", page_icon="💻")
+st.set_page_config(page_title="Практика (Elo)")
+apply_glass_theme()
+
 st.title("Практика (Elo)")
 
 
@@ -71,16 +74,21 @@ if st.session_state.practice_stage == "idle":
 
 if st.session_state.practice_stage in ("writing", "code_failed", "reviewed"):
     st.subheader(f"Тема: {trainer.current_topic}")
-    st.caption(
-        f"Сложность: {trainer.current_difficulty} · "
-        f"Рейтинг темы: {progress.get_rating(trainer.current_topic)}"
-    )
+    signal_indicator("Рейтинг темы", progress.get_rating(trainer.current_topic))
+    st.caption(f"Сложность: {trainer.current_difficulty}")
 
     question = trainer.ask_question()
 
     if question is not None:
-        st.markdown(f"**Задача {trainer.current_question + 1}:**")
+        render_chat_helper(
+            llm_client=get_llm_client(),
+            question_text=question.question,
+            chat_key=f"practice_{trainer.current_topic}",
+        )
+
+        glass_card_open(f"Задача {trainer.current_question + 1}")
         st.write(question.question)
+        glass_card_close()
 
 
 # ---------------------------------------------------------------------------
@@ -156,7 +164,7 @@ if st.session_state.practice_stage == "reviewed":
 
     st.code(st.session_state.practice_code_draft, language="python")
 
-    st.divider()
+    glass_divider()
     st.metric("Оценка", f"{review.score}/10")
 
     if review.correct_parts:
@@ -172,7 +180,7 @@ if st.session_state.practice_stage == "reviewed":
     st.markdown("**Комментарий:**")
     st.write(review.feedback)
 
-    st.caption(f"Рейтинг темы теперь: {updated['rating']}")
+    signal_indicator("Рейтинг темы теперь", updated["rating"])
 
     # Проверяем, остался ли ещё вопрос в текущей сессии, БЕЗ побочного
     # эффекта (не вызываем next_question() здесь — только читаем индекс).

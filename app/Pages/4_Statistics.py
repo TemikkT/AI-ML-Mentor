@@ -10,8 +10,20 @@ import plotly.graph_objects as go
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from app.bootstrap import get_main_history
 from services.common.StatisticsManager import ProgressAnalyzer
+from app.ui.theme import (
+    apply_glass_theme,
+    glass_divider,
+    VOID,
+    TEXT_PRIMARY,
+    TEXT_DIM,
+    GLASS_BORDER,
+    NEON_BLUE,
+    NEON_BLUE_SOFT,
+    NEON_RED,
+)
 
-st.set_page_config(page_title="Статистика", page_icon="📊", layout="wide")
+st.set_page_config(page_title="Статистика", layout="wide")
+apply_glass_theme()
 st.title("Статистика")
 st.caption("Данные из общей истории (Теория + Интервью). Статистика по практике появится позже.")
 
@@ -23,6 +35,26 @@ sessions = history.load_history()
 if not sessions:
     st.info("История пуста — пройди хотя бы одну сессию, чтобы увидеть статистику.")
     st.stop()
+
+
+# ---------------------------------------------------------------------------
+# Общий "паспорт" оформления графиков Plotly — чтобы они растворялись
+# в стеклянной неоновой палитре, а не торчали белым фоном.
+# ---------------------------------------------------------------------------
+
+PLOTLY_FONT = dict(family="JetBrains Mono, monospace", color=TEXT_PRIMARY, size=12)
+GRID_COLOR = "rgba(140,210,255,0.12)"
+
+
+def style_fig(fig):
+    fig.update_layout(
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(255,255,255,0.02)",
+        font=PLOTLY_FONT,
+        xaxis=dict(gridcolor=GRID_COLOR, zerolinecolor=GRID_COLOR, linecolor=GLASS_BORDER),
+        yaxis=dict(gridcolor=GRID_COLOR, zerolinecolor=GRID_COLOR, linecolor=GLASS_BORDER),
+    )
+    return fig
 
 
 # ---------------------------------------------------------------------------
@@ -38,7 +70,7 @@ col3.metric("Вопросов отвечено", summary["questions"])
 
 col4, col5 = st.columns(2)
 with col4:
-    st.markdown("**🟢 Сильные темы** (средний балл ≥ 9.0)")
+    st.markdown("**Сильные темы** (средний балл ≥ 9.0)")
     if summary["strong_topics"]:
         for topic in summary["strong_topics"]:
             st.write(f"- {topic}")
@@ -46,7 +78,7 @@ with col4:
         st.caption("Пока нет тем с настолько высоким баллом.")
 
 with col5:
-    st.markdown("**🔴 Слабые темы** (средний балл < 6.5)")
+    st.markdown("**Слабые темы** (средний балл < 6.5)")
     if summary["weak_topics"]:
         for topic in summary["weak_topics"]:
             st.write(f"- {topic}")
@@ -54,7 +86,7 @@ with col5:
         st.caption("Слабых тем не найдено — отлично!")
 
 
-st.divider()
+glass_divider()
 
 
 # ---------------------------------------------------------------------------
@@ -70,16 +102,20 @@ if topic_stats:
     topic_names = [t[0] for t in topics_sorted]
     topic_scores = [t[1] for t in topics_sorted]
 
-    colors = ["#e74c3c" if score < 6.5 else "#f1c40f" if score < 9.0 else "#2ecc71" for score in topic_scores]
+    colors = [NEON_RED if score < 6.5 else NEON_BLUE_SOFT if score < 9.0 else NEON_BLUE for score in topic_scores]
 
     fig = go.Figure(go.Bar(
         x=topic_scores,
         y=topic_names,
         orientation="h",
         marker_color=colors,
+        marker_line_color=GLASS_BORDER,
+        marker_line_width=1,
         text=[f"{s:.1f}" for s in topic_scores],
         textposition="outside",
+        textfont=dict(color=TEXT_PRIMARY),
     ))
+    style_fig(fig)
     fig.update_layout(
         xaxis_title="Средний балл",
         yaxis_title=None,
@@ -92,7 +128,7 @@ else:
     st.caption("Нет данных по темам.")
 
 
-st.divider()
+glass_divider()
 
 
 # ---------------------------------------------------------------------------
@@ -113,12 +149,17 @@ fig2 = px.line(
     labels={"x": "Номер сессии", "y": "Средний балл"},
     hover_name=topics_for_hover,
 )
-fig2.update_traces(hovertemplate="Сессия %{x}<br>Балл: %{y}<br>Тема: %{hovertext}")
+fig2.update_traces(
+    hovertemplate="Сессия %{x}<br>Балл: %{y}<br>Тема: %{hovertext}",
+    line_color=NEON_BLUE,
+    marker=dict(color=NEON_BLUE, size=7, line=dict(color=GLASS_BORDER, width=1)),
+)
+style_fig(fig2)
 fig2.update_layout(yaxis_range=[0, 10], margin=dict(l=10, r=10, t=10, b=10))
 st.plotly_chart(fig2, use_container_width=True)
 
 
-st.divider()
+glass_divider()
 
 
 # ---------------------------------------------------------------------------
@@ -139,10 +180,14 @@ if by_difficulty:
     fig3 = go.Figure(go.Bar(
         x=[d[0] for d in sorted_difficulties],
         y=[d[1] for d in sorted_difficulties],
-        marker_color="#3498db",
+        marker_color=NEON_BLUE,
+        marker_line_color=GLASS_BORDER,
+        marker_line_width=1,
         text=[f"{d[1]:.1f}" for d in sorted_difficulties],
         textposition="outside",
+        textfont=dict(color=TEXT_PRIMARY),
     ))
+    style_fig(fig3)
     fig3.update_layout(
         yaxis_title="Средний балл",
         yaxis_range=[0, 10],
@@ -153,7 +198,7 @@ else:
     st.caption("Нет данных по сложности вопросов.")
 
 
-st.divider()
+glass_divider()
 
 
 # ---------------------------------------------------------------------------

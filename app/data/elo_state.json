@@ -1,6 +1,6 @@
 {
     "Python база": {
-        "rating": 116,
+        "rating": 212,
         "unlocked": true
     },
     "Статистика": {
@@ -68,7 +68,7 @@
         "unlocked": true
     },
     "Иерархическая кластеризация": {
-        "rating": 250,
+        "rating": 258,
         "unlocked": true
     },
     "Нейронные сети": {

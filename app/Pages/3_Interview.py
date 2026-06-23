@@ -7,9 +7,11 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from app.bootstrap import build_interview_trainer
+from app.ui.theme import apply_glass_theme, glass_card_open, glass_card_close, glass_divider
 from config.interview_config import INTERVIEW_TOPICS_PER_SESSION
 
-st.set_page_config(page_title="Интервью", page_icon="🎤")
+st.set_page_config(page_title="Интервью")
+apply_glass_theme()
 st.title("Интервью")
 st.caption(
     f"Случайный набор из {INTERVIEW_TOPICS_PER_SESSION} тем подряд — "
@@ -78,8 +80,9 @@ if st.session_state.interview_stage in ("active", "reviewed"):
     question = trainer.ask_question()
 
     if question is not None:
-        st.markdown(f"**Вопрос {trainer.current_question + 1}:**")
+        glass_card_open(f"Вопрос {trainer.current_question + 1}")
         st.write(question.question)
+        glass_card_close()
 
 
 if st.session_state.interview_stage == "active":
@@ -106,7 +109,7 @@ if st.session_state.interview_stage == "active":
 if st.session_state.interview_stage == "reviewed":
     review = st.session_state.interview_review
 
-    st.divider()
+    glass_divider()
     st.metric("Оценка", f"{review.score}/10")
 
     if review.correct_parts:
@@ -160,12 +163,12 @@ if st.session_state.interview_stage == "finished":
         st.info("Ни одна тема не была сохранена (не было ответов).")
     else:
         for session in completed:
-            with st.container(border=True):
-                st.markdown(f"**{session.topic}**")
-                if session.results:
-                    st.write(f"Средний балл: {session.average_score:.1f} ({len(session.results)} вопрос(ов))")
-                else:
-                    st.write("Без ответов — сессия не сохранена в историю.")
+            glass_card_open(session.topic)
+            if session.results:
+                st.write(f"Средний балл: {session.average_score:.1f} ({len(session.results)} вопрос(ов))")
+            else:
+                st.write("Без ответов — сессия не сохранена в историю.")
+            glass_card_close()
 
     if st.button("Начать новое интервью"):
         st.session_state.interview_trainer = None

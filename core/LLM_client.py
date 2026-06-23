@@ -1,5 +1,5 @@
 from langchain_openrouter import ChatOpenRouter
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 import base64
 from openai import OpenAI
 import os
@@ -8,6 +8,11 @@ SystemMessage - инструкция для модели, то что подаё
 Там говорится кто она и для чего создана, расписан её характер и поведение
 
 HumanMessage - Сообщение пользователя, его вопрос самой модели
+
+AIMessage - предыдущая реплика самой модели. Нужна для передачи истории
+диалога в ask_stream — LLMClient сам не хранит состояние чата
+(оно живёт в st.session_state на стороне Streamlit-страницы), поэтому
+каждый вызов получает ПОЛНУЮ историю целиком.
 """
 from dotenv import load_dotenv
 load_dotenv() # выгрузка API ключа
@@ -37,6 +42,36 @@ class LLMClient():
                 print(chunk.content, end="", flush=True) # flush = True : Заставляет Python сразу вывести текст на экран. Без него часть текста может ждать в буфере.
         print()
 
+
+    def ask_stream(self, system_prompt: str, history: list[dict]):
+        """
+        Стриминговый чат для UI (Streamlit). В отличие от ask(), НЕ печатает
+        в консоль и НЕ ограничен одной репликой — возвращает генератор
+        текстовых чанков, который вызывающий код (например, st.write_stream)
+        сам отрисовывает по мере поступления.
+
+        LLMClient не хранит историю диалога — она передаётся целиком на
+        каждый вызов через параметр history, в формате:
+            [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}, ...]
+        (именно так удобно хранить историю в st.session_state на стороне
+        Streamlit-страницы — обычный список словарей, без зависимости от
+        классов langchain).
+
+        system_prompt передаётся отдельно и всегда идёт первым сообщением.
+        """
+        messages = [SystemMessage(content=system_prompt)]
+
+        for entry in history:
+            if entry["role"] == "user":
+                messages.append(HumanMessage(content=entry["content"]))
+            elif entry["role"] == "assistant":
+                messages.append(AIMessage(content=entry["content"]))
+            # неизвестные роли молча пропускаем — не должно случаться,
+            # но лучше не падать на постороннем мусоре в истории
+
+        for chunk in self.model.stream(messages):
+            if chunk.content:
+                yield chunk.content
 
 
     def get_structured_llm(self, schema): # создаём метод, который будет отвечать за структуру ответа, как будет выглядеть ответ от модели
