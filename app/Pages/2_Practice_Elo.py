@@ -4,16 +4,17 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import streamlit as st
+from streamlit_ace import st_ace
 
 from app.bootstrap import build_practice_trainer, get_practice_elo_progress, get_llm_client
 from app.chat_helper import render_chat_helper
 from app.ui.theme import apply_glass_theme, signal_indicator, glass_card_open, glass_card_close, glass_divider
 from config.elo_config import PRACTICE_TOPICS
 
-st.set_page_config(page_title="Практика (Elo)")
+st.set_page_config(page_title="Практика (Elo)", page_icon="💻")
 apply_glass_theme()
 
-st.title("Практика (Elo)")
+st.title("💻 Практика (Elo)")
 
 
 # ---------------------------------------------------------------------------
@@ -96,10 +97,18 @@ if st.session_state.practice_stage in ("writing", "code_failed", "reviewed"):
 # ---------------------------------------------------------------------------
 
 if st.session_state.practice_stage == "writing":
-    code = st.text_area(
-        "Код решения",
+    st.caption("Код решения")
+    code = st_ace(
         value=st.session_state.practice_code_draft,
-        height=200,
+        language="python",
+        theme="tomorrow_night",
+        keybinding="vscode",
+        font_size=14,
+        tab_size=4,
+        show_gutter=True,
+        wrap=False,
+        auto_update=True,
+        height=250,
         key=f"code_{trainer.current_question}",
     )
 

@@ -46,10 +46,12 @@ from services.elo.EloTrainer import EloTrainer
 from services.practice.PracticeEvaluator import PracticeEvaluator
 from services.practice.PracticeEloManager import PracticeEloProgressManager
 from services.practice.PracticeTrainer import PracticeTrainer
+
+from services.exam_topic.ExamTrainer import ExamTrainer
  
 from config.elo_config import obsidian_path, CODE_EXECUTION_TIMEOUT
 from config.elo_config import elo_state_path, elo_history_path, PRACTICE_TOPICS
-from config.prompts import ELO_QUESTION_PROMPT, PRACTICE_QUESTION_PROMPT, QUESTION_PROMPT
+from config.prompts import ELO_QUESTION_PROMPT, PRACTICE_QUESTION_PROMPT, QUESTION_PROMPT, EXAM_PROMPT
 
 
 PRACTICE_HISTORY_PATH = "data/history_practice.json"
@@ -57,13 +59,11 @@ PRACTICE_ELO_STATE_PATH = "data/practice_elo_state.json"
 MAIN_HISTORY_PATH = "data/history.json"
  
  
-# ---------------------------------------------------------------------------
+
 # Базовые, общие для всех режимов сервисы
-# ---------------------------------------------------------------------------
- 
 @st.cache_resource
 def get_llm_client() -> LLMClient:
-    return LLMClient(model_name="deepseek/deepseek-v4-flash")
+    return LLMClient(model_name="deepseek/deepseek-v4-pro")
  
  
 @st.cache_resource
@@ -82,10 +82,9 @@ def get_main_history() -> HistoryManager:
     return HistoryManager(file_path=MAIN_HISTORY_PATH)
  
  
-# ---------------------------------------------------------------------------
+
+
 # Theory-Elo
-# ---------------------------------------------------------------------------
- 
 @st.cache_resource
 def get_theory_elo_history() -> HistoryManager:
     """Отдельный журнал только Elo-сессий теории — для подсветки слабых мест."""
@@ -122,10 +121,8 @@ def build_theory_elo_trainer() -> EloTrainer:
     )
  
  
-# ---------------------------------------------------------------------------
+
 # Practice-Elo
-# ---------------------------------------------------------------------------
- 
 @st.cache_resource
 def get_practice_history() -> HistoryManager:
     return HistoryManager(file_path=PRACTICE_HISTORY_PATH)
@@ -158,10 +155,8 @@ def build_practice_trainer() -> PracticeTrainer:
     )
  
  
-# ---------------------------------------------------------------------------
+
 # Interview
-# ---------------------------------------------------------------------------
- 
 @st.cache_resource
 def get_interview_topic_selector() -> TopicSelector:
     return TopicSelector(get_main_history())
@@ -184,4 +179,25 @@ def build_interview_trainer() -> InterviewTrainer:
         generator=generator,
         evaluator=evaluator,
         history=get_main_history(),
+    )
+
+# Exam in topic
+@st.cache_resource
+def build_exam_trainer() -> ExamTrainer:
+    """
+    Создаёт НОВЫЙ экземпляр ExamTrainer (Экзамен)
+    """
+
+    llm = get_llm_client()
+    history = get_main_history()
+
+    generator = QuestionGenerator(llm, prompt_template=EXAM_PROMPT, history_manager=history)
+    evaluator = AnswerEvaluator(llm)
+    
+    return ExamTrainer(
+        loader=get_loader(),
+        cleaner=get_cleaner(),
+        generator=generator,
+        evaluator=evaluator,
+        history=history
     )

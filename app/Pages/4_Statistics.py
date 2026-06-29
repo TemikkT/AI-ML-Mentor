@@ -1,13 +1,12 @@
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from app.bootstrap import get_main_history
 from services.common.StatisticsManager import ProgressAnalyzer
 from app.ui.theme import (
@@ -25,6 +24,64 @@ from app.ui.theme import (
 st.set_page_config(page_title="Статистика", layout="wide")
 apply_glass_theme()
 st.title("Статистика")
+
+# ---------------------------------------------------------------------------
+# Результат последней завершённой сессии
+# ---------------------------------------------------------------------------
+session = st.session_state.get("finished_session")
+if session is not None:
+    st.subheader(f"Последняя сессия: {session.topic}")
+
+    delta = session.finished_at - session.started_at
+    mins, secs = divmod(int(delta.total_seconds()), 60)
+    avg = session.average_score
+
+    col_time, col_q, col_score = st.columns(3)
+    col_time.metric("Время", f"{mins} мин {secs} сек")
+    col_q.metric("Ответов", len(session.results))
+    col_score.metric("Средний балл", f"{avg:.1f} / 10")
+
+    st.progress(avg / 10, text="Общий результат")
+
+    easy = [r for r in session.results if r.difficulty == "easy"]
+    medium = [r for r in session.results if r.difficulty == "medium"]
+    hard = [r for r in session.results if r.difficulty == "hard"]
+
+    if easy or medium or hard:
+        glass_divider()
+        st.markdown("**По уровню сложности**")
+        c1, c2, c3 = st.columns(3)
+        if easy:
+            c1.metric("Easy", f"{sum(r.score for r in easy) / len(easy):.1f}", f"{len(easy)} вопросов")
+        if medium:
+            c2.metric("Medium", f"{sum(r.score for r in medium) / len(medium):.1f}", f"{len(medium)} вопросов")
+        if hard:
+            c3.metric("Hard", f"{sum(r.score for r in hard) / len(hard):.1f}", f"{len(hard)} вопросов")
+
+    glass_divider()
+    st.markdown("**Разбор ответов**")
+    for i, r in enumerate(session.results, 1):
+        color = "🟢" if r.score >= 7 else "🟡" if r.score >= 4 else "🔴"
+        with st.expander(f"{color} Вопрос {i} — {r.score}/10 [{r.difficulty}]"):
+            st.markdown(f"**Вопрос:** {r.question}")
+            st.markdown(f"**Твой ответ:** {r.answer}")
+            if r.correct_parts:
+                st.markdown("**✅ Верно:**")
+                for part in r.correct_parts:
+                    st.markdown(f"- {part}")
+            if r.mistakes:
+                st.markdown("**❌ Ошибки:**")
+                for m in r.mistakes:
+                    st.markdown(f"- {m}")
+            st.markdown(f"**💬 Рекомендация:** {r.feedback}")
+
+    glass_divider()
+    if st.button("Очистить", key="clear_last_session"):
+        st.session_state.finished_session = None
+        st.rerun()
+
+    glass_divider()
+
 st.caption("Данные из общей истории (Теория + Интервью). Статистика по практике появится позже.")
 
 history = get_main_history()

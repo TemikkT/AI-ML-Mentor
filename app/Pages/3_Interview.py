@@ -1,11 +1,10 @@
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import streamlit as st
 
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from app.bootstrap import build_interview_trainer
 from app.ui.theme import apply_glass_theme, glass_card_open, glass_card_close, glass_divider
 from config.interview_config import INTERVIEW_TOPICS_PER_SESSION

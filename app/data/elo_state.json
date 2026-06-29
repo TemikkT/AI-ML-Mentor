@@ -1,103 +1,131 @@
 {
     "Python база": {
-        "rating": 212,
+        "rating": 394,
         "unlocked": true
+    },
+    "Numpy": {
+        "rating": 0,
+        "unlocked": false
     },
     "Статистика": {
-        "rating": 250,
-        "unlocked": true
+        "rating": 0,
+        "unlocked": false
     },
     "Pandas - Основы DataFrame": {
-        "rating": 88,
-        "unlocked": true
+        "rating": 0,
+        "unlocked": false
     },
     "SQL - Postgres": {
-        "rating": 250,
-        "unlocked": true
+        "rating": 60,
+        "unlocked": false
+    },
+    "Python ООП": {
+        "rating": 0,
+        "unlocked": false
     },
     "Работа с Git и GitHub": {
-        "rating": 250,
-        "unlocked": true
+        "rating": 0,
+        "unlocked": false
+    },
+    "Линейная регрессия": {
+        "rating": 0,
+        "unlocked": false
     },
     "Метрики регрессии": {
-        "rating": 250,
-        "unlocked": true
+        "rating": 0,
+        "unlocked": false
     },
     "Логистическая регрессия": {
-        "rating": 250,
-        "unlocked": true
+        "rating": 0,
+        "unlocked": false
     },
     "Регуляризация - Линейная регрессия": {
-        "rating": 250,
-        "unlocked": true
+        "rating": 0,
+        "unlocked": false
     },
     "Метрики классификации": {
-        "rating": 250,
-        "unlocked": true
+        "rating": 0,
+        "unlocked": false
+    },
+    "Sklearn - база": {
+        "rating": 0,
+        "unlocked": false
     },
     "KNN ближайшие соседи": {
-        "rating": 250,
-        "unlocked": true
+        "rating": 0,
+        "unlocked": false
     },
     "Функции активации и функции потерь": {
-        "rating": 250,
-        "unlocked": true
+        "rating": 0,
+        "unlocked": false
     },
     "SVM Метод опорных векторов": {
-        "rating": 250,
-        "unlocked": true
+        "rating": 0,
+        "unlocked": false
     },
     "Наивный Байес": {
-        "rating": 250,
-        "unlocked": true
+        "rating": 0,
+        "unlocked": false
     },
     "Дерево решений": {
-        "rating": 250,
-        "unlocked": true
+        "rating": 0,
+        "unlocked": false
     },
     "Случайный лес": {
-        "rating": 250,
-        "unlocked": true
+        "rating": 0,
+        "unlocked": false
     },
     "Бустинг и Градиентный бустинг": {
-        "rating": 250,
-        "unlocked": true
+        "rating": 0,
+        "unlocked": false
     },
     "K-means Кластеризация": {
-        "rating": 250,
-        "unlocked": true
+        "rating": 0,
+        "unlocked": false
     },
     "Иерархическая кластеризация": {
-        "rating": 258,
-        "unlocked": true
+        "rating": 0,
+        "unlocked": false
     },
-    "Нейронные сети": {
-        "rating": 250,
-        "unlocked": true
+    "PyTorch база": {
+        "rating": 0,
+        "unlocked": false
     },
     "Обучение нейронных сетей back propagation": {
-        "rating": 250,
-        "unlocked": true
+        "rating": 0,
+        "unlocked": false
+    },
+    "Регуляризация и трюки обучения": {
+        "rating": 0,
+        "unlocked": false
     },
     "Оптимизаторы под функции потерь": {
-        "rating": 250,
-        "unlocked": true
+        "rating": 0,
+        "unlocked": false
     },
     "Сверточные нейронные сети (CNN)": {
-        "rating": 250,
-        "unlocked": true
+        "rating": 0,
+        "unlocked": false
+    },
+    "Transfer Learning": {
+        "rating": 0,
+        "unlocked": false
     },
     "YOLO модель, что умеет и как работать": {
-        "rating": 250,
-        "unlocked": true
+        "rating": 0,
+        "unlocked": false
+    },
+    "Yolo Код": {
+        "rating": 0,
+        "unlocked": false
     },
     "NLP Извлечение признаков": {
-        "rating": 250,
-        "unlocked": true
+        "rating": 0,
+        "unlocked": false
     },
     "NLP Трансформер": {
-        "rating": 250,
-        "unlocked": true
+        "rating": 0,
+        "unlocked": false
     },
     "LangChain": {
         "rating": 0,

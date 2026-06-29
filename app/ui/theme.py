@@ -1,46 +1,70 @@
 """
-app/ui/theme.py — тема "Стеклянная неоновая пустота" для AI Ментора.
+app/ui/theme.py — тема Catppuccin Frappe для AI Ментора.
 
 Подключается одной строкой в начале каждой страницы:
 
     from app.ui.theme import apply_glass_theme
     apply_glass_theme()
-
-Идея оформления: интерфейс висит в тёмной пустоте, как HUD нейросети.
-Все панели — полупрозрачное стекло (backdrop-filter blur) с тонкой
-светящейся голубой обводкой. Рейтинг темы показывается не текстом,
-а "индикатором сигнала" — светящейся точкой с пульсацией: чем выше
-рейтинг, тем ярче и холоднее свет; чем ниже — тем тревожнее (розово-
-красный). Никакой бумаги, никаких насечек — чистый свет на чёрном.
-
-Кроме apply_glass_theme() модуль даёт HTML-хелперы (signal_indicator,
-glass_card_open/close, glass_divider), которые оборачивают
-st.markdown(..., unsafe_allow_html=True) готовыми классами.
 """
 
 import streamlit as st
 
 
 # ---------------------------------------------------------------------------
-# Палитра и токены
+# Палитра Catppuccin Frappe
 # ---------------------------------------------------------------------------
 
-VOID = "#05070c"            # фон — пустота с едва заметным синим подтоном
-VOID_DEEP = "#020306"        # самые глубокие тени / виньетка
-GLASS_FILL = "rgba(255,255,255,0.035)"   # заливка стеклянных панелей
-GLASS_FILL_RAISED = "rgba(255,255,255,0.06)"  # приподнятые поверхности (инпуты)
-GLASS_BORDER = "rgba(140,210,255,0.16)"  # обводка стекла в покое
-GLASS_BORDER_HOVER = "rgba(140,210,255,0.4)"
-TEXT_PRIMARY = "#e8f4ff"     # основной текст — холодный почти-белый
-TEXT_DIM = "#7e93ab"         # притушенный текст / подписи
-NEON_BLUE = "#5fd4ff"        # главный неон — успех, активность, фокус
-NEON_BLUE_SOFT = "#3a9fc7"   # тот же тон, но тише (для теней/градиентов)
-NEON_RED = "#ff5f7a"         # тревога — низкий рейтинг, ошибки
-NEON_RED_SOFT = "#b5455a"
+# Основные фоны
+CRUST = "#232634"
+MANTLE = "#292c3c"
+BASE = "#303446"
+
+# Поверхности
+SURFACE0 = "#414559"
+SURFACE1 = "#51576d"
+SURFACE2 = "#626880"
+
+# Overlay
+OVERLAY0 = "#737994"
+OVERLAY1 = "#838ba7"
+OVERLAY2 = "#949cbb"
+
+# Текст
+SUBTEXT0 = "#a5adce"
+SUBTEXT1 = "#b5bfe2"
+TEXT = "#c6d0f5"
+
+# Цвета акцентов
+LAVENDER = "#babbf1"
+BLUE = "#8caaee"
+SAPPHIRE = "#85c1dc"
+SKY = "#99d1db"
+TEAL = "#81c8be"
+GREEN = "#a6d189"
+YELLOW = "#e5c890"
+PEACH = "#ef9f76"
+MAROON = "#ea999c"
+RED = "#e78284"
+MAUVE = "#ca9ee6"
+PINK = "#f4b8e4"
+FLAMINGO = "#eebebe"
+ROSEWATER = "#f2d5cf"
+
+VOID = BASE
+VOID_DEEP = CRUST
+GLASS_FILL = "rgba(65,69,89,0.45)"
+GLASS_FILL_RAISED = "rgba(81,87,109,0.55)"
+GLASS_BORDER = "rgba(98,104,128,0.35)"
+GLASS_BORDER_HOVER = "rgba(115,121,148,0.55)"
+TEXT_PRIMARY = TEXT
+TEXT_DIM = OVERLAY1
+NEON_BLUE = BLUE
+NEON_BLUE_SOFT = LAVENDER
+NEON_RED = RED
+NEON_RED_SOFT = MAROON
 
 
 def apply_glass_theme() -> None:
-    """Внедряет CSS темы 'стеклянная неоновая пустота' в текущую страницу."""
 
     st.markdown(
         f"""
@@ -63,17 +87,11 @@ def apply_glass_theme() -> None:
             --neon-red-soft: {NEON_RED_SOFT};
         }}
 
-        /* -------------------------------------------------------------
-           Базовый фон — пустота с мягким туманом неона по краям,
-           без шума и зерна (это не бумага, это вакуум).
-        ------------------------------------------------------------- */
-
         html, body, [data-testid="stAppViewContainer"] {{
             background-color: var(--void);
             background-image:
-                radial-gradient(ellipse 60% 40% at 15% 0%, rgba(95,212,255,0.10), transparent 60%),
-                radial-gradient(ellipse 50% 35% at 100% 15%, rgba(95,212,255,0.06), transparent 65%),
-                radial-gradient(ellipse 70% 50% at 50% 100%, rgba(2,3,6,0.9), transparent 70%);
+                radial-gradient(ellipse 70% 45% at 10% -5%, rgba(140,170,238,0.06), transparent 65%),
+                radial-gradient(ellipse 55% 40% at 90% 10%, rgba(202,158,230,0.04), transparent 60%);
             color: var(--text-primary);
         }}
 
@@ -82,9 +100,9 @@ def apply_glass_theme() -> None:
         }}
 
         [data-testid="stSidebar"] {{
-            background-color: rgba(5,8,14,0.85);
+            background-color: rgba(35,38,52,0.92);
             border-right: 1px solid var(--glass-border);
-            backdrop-filter: blur(18px);
+            backdrop-filter: blur(20px);
         }}
 
         [data-testid="stSidebar"] * {{
@@ -102,13 +120,13 @@ def apply_glass_theme() -> None:
         }}
 
         section[data-testid="stSidebarNav"] a[aria-current="page"] {{
-            background-color: rgba(95,212,255,0.08) !important;
+            background-color: rgba(140,170,238,0.1) !important;
             box-shadow: inset 2px 0 0 var(--neon-blue);
             color: var(--neon-blue) !important;
         }}
 
         .block-container {{
-            max-width: 880px;
+            max-width: 1200px;
             padding-top: 2.4rem;
             padding-bottom: 4rem;
         }}
@@ -122,7 +140,7 @@ def apply_glass_theme() -> None:
             font-weight: 600 !important;
             color: var(--text-primary) !important;
             letter-spacing: -0.01em;
-            text-shadow: 0 0 22px rgba(95,212,255,0.35);
+            text-shadow: 0 0 30px rgba(140,170,238,0.3);
             border-bottom: 1px solid var(--glass-border);
             padding-bottom: 0.6rem;
             margin-bottom: 1.2rem !important;
@@ -150,7 +168,7 @@ def apply_glass_theme() -> None:
         h3 {{
             font-size: 1.05rem !important;
             color: var(--neon-blue) !important;
-            border-left: 2px solid rgba(95,212,255,0.4);
+            border-left: 2px solid rgba(140,170,238,0.4);
             padding-left: 0.6rem;
         }}
 
@@ -163,7 +181,7 @@ def apply_glass_theme() -> None:
         }}
 
         /* -------------------------------------------------------------
-           Кнопки — стеклянные грани, светятся на hover/focus
+           Кнопки
         ------------------------------------------------------------- */
 
         .stButton button, .stDownloadButton button {{
@@ -182,7 +200,7 @@ def apply_glass_theme() -> None:
         .stButton button:hover, .stDownloadButton button:hover {{
             border-color: var(--glass-border-hover);
             color: var(--neon-blue) !important;
-            box-shadow: 0 0 18px rgba(95,212,255,0.18);
+            box-shadow: 0 0 22px rgba(140,170,238,0.2);
         }}
 
         .stButton button:active {{
@@ -190,21 +208,21 @@ def apply_glass_theme() -> None:
         }}
 
         .stButton button[kind="primary"] {{
-            background: linear-gradient(180deg, rgba(95,212,255,0.18), rgba(95,212,255,0.08));
-            border: 1px solid rgba(95,212,255,0.55);
+            background: linear-gradient(180deg, rgba(140,170,238,0.2), rgba(140,170,238,0.08));
+            border: 1px solid rgba(140,170,238,0.5);
             color: #eafbff !important;
             font-weight: 600;
-            box-shadow: 0 0 16px rgba(95,212,255,0.22);
+            box-shadow: 0 0 20px rgba(140,170,238,0.25);
         }}
 
         .stButton button[kind="primary"]:hover {{
             border-color: var(--neon-blue);
-            box-shadow: 0 0 26px rgba(95,212,255,0.4);
+            box-shadow: 0 0 32px rgba(140,170,238,0.4);
             color: #ffffff !important;
         }}
 
         /* -------------------------------------------------------------
-           Поля ввода — тёмное стекло чуть приподнятое над фоном
+           Поля ввода
         ------------------------------------------------------------- */
 
         .stTextArea textarea, .stTextInput input, .stSelectbox div[data-baseweb="select"] > div {{
@@ -218,11 +236,16 @@ def apply_glass_theme() -> None:
 
         .stTextArea textarea:focus, .stTextInput input:focus {{
             border-color: var(--neon-blue) !important;
-            box-shadow: 0 0 0 1px rgba(95,212,255,0.3), 0 0 18px rgba(95,212,255,0.15) !important;
+            box-shadow: 0 0 0 1px rgba(140,170,238,0.3), 0 0 22px rgba(140,170,238,0.15) !important;
+        }}
+
+        .stSelectbox div[data-baseweb="select"] > div:focus {{
+            border-color: var(--neon-blue) !important;
+            box-shadow: 0 0 0 1px rgba(140,170,238,0.3) !important;
         }}
 
         /* -------------------------------------------------------------
-           Карточки/контейнеры и code-блоки — стекло с лёгким blur
+           Карточки, контейнеры, code-блоки
         ------------------------------------------------------------- */
 
         [data-testid="stVerticalBlockBorderWrapper"]:has(> div > [data-testid="stVerticalBlock"]) {{
@@ -236,10 +259,9 @@ def apply_glass_theme() -> None:
         }}
 
         .stCodeBlock, pre {{
-            background-color: rgba(255,255,255,0.025) !important;
+            background-color: rgba(35,38,52,0.6) !important;
             border: 1px solid var(--glass-border) !important;
             border-radius: 8px !important;
-            backdrop-filter: blur(10px);
         }}
 
         code {{
@@ -248,7 +270,7 @@ def apply_glass_theme() -> None:
         }}
 
         /* -------------------------------------------------------------
-           Метрики (st.metric) — светящееся число в стекле
+           Метрики
         ------------------------------------------------------------- */
 
         [data-testid="stMetric"] {{
@@ -263,7 +285,7 @@ def apply_glass_theme() -> None:
             font-family: 'Space Grotesk', sans-serif !important;
             color: var(--neon-blue) !important;
             font-weight: 600 !important;
-            text-shadow: 0 0 16px rgba(95,212,255,0.4);
+            text-shadow: 0 0 20px rgba(140,170,238,0.4);
         }}
 
         [data-testid="stMetricLabel"] {{
@@ -275,12 +297,12 @@ def apply_glass_theme() -> None:
         }}
 
         /* -------------------------------------------------------------
-           Прогресс-бар — луч света
+           Прогресс-бар
         ------------------------------------------------------------- */
 
         .stProgress div[role="progressbar"] > div {{
             background: linear-gradient(90deg, var(--neon-blue-soft), var(--neon-blue)) !important;
-            box-shadow: 0 0 10px rgba(95,212,255,0.5);
+            box-shadow: 0 0 14px rgba(140,170,238,0.5);
         }}
 
         .stProgress div[role="progressbar"] {{
@@ -289,29 +311,29 @@ def apply_glass_theme() -> None:
         }}
 
         /* -------------------------------------------------------------
-           Алерты — error/warning/success/info в неоновой палитре
+           Алерты
         ------------------------------------------------------------- */
 
         div[data-testid="stAlertContentError"], .stAlert:has(div[data-testid="stAlertContentError"]) {{
-            background-color: rgba(255,95,122,0.08) !important;
+            background-color: rgba(231,130,132,0.08) !important;
             border-left: 3px solid var(--neon-red) !important;
             backdrop-filter: blur(10px);
         }}
 
         div[data-testid="stAlertContentSuccess"], .stAlert:has(div[data-testid="stAlertContentSuccess"]) {{
-            background-color: rgba(95,212,255,0.08) !important;
+            background-color: rgba(140,170,238,0.08) !important;
             border-left: 3px solid var(--neon-blue) !important;
             backdrop-filter: blur(10px);
         }}
 
         div[data-testid="stAlertContentWarning"], .stAlert:has(div[data-testid="stAlertContentWarning"]) {{
-            background-color: rgba(255,200,95,0.06) !important;
-            border-left: 3px solid #ffc85f !important;
+            background-color: rgba(229,200,144,0.07) !important;
+            border-left: 3px solid #e5c890 !important;
             backdrop-filter: blur(10px);
         }}
 
         div[data-testid="stAlertContentInfo"], .stAlert:has(div[data-testid="stAlertContentInfo"]) {{
-            background-color: rgba(126,147,171,0.08) !important;
+            background-color: rgba(131,139,167,0.08) !important;
             border-left: 3px solid var(--text-dim) !important;
             backdrop-filter: blur(10px);
         }}
@@ -325,8 +347,7 @@ def apply_glass_theme() -> None:
         }}
 
         /* -------------------------------------------------------------
-           Сигнатурный элемент: индикатор сигнала рейтинга.
-           Подключается через signal_indicator() ниже.
+           Индикатор сигнала рейтинга
         ------------------------------------------------------------- */
 
         .glass-signal-wrap {{
@@ -351,17 +372,17 @@ def apply_glass_theme() -> None:
 
         .glass-signal-dot.blue {{
             background: var(--neon-blue);
-            box-shadow: 0 0 8px 2px rgba(95,212,255,0.7);
+            box-shadow: 0 0 10px 3px rgba(140,170,238,0.7);
         }}
 
         .glass-signal-dot.red {{
             background: var(--neon-red);
-            box-shadow: 0 0 8px 2px rgba(255,95,122,0.7);
+            box-shadow: 0 0 8px 2px rgba(231,130,132,0.6);
         }}
 
         .glass-signal-dot.dim {{
             background: var(--text-dim);
-            box-shadow: 0 0 6px 1px rgba(126,147,171,0.5);
+            box-shadow: 0 0 6px 1px rgba(131,139,167,0.4);
             animation: none;
         }}
 
@@ -386,8 +407,7 @@ def apply_glass_theme() -> None:
         }}
 
         /* -------------------------------------------------------------
-           Стеклянная карточка вопроса/задачи.
-           Подключается через glass_card_open()/glass_card_close().
+           Стеклянная карточка
         ------------------------------------------------------------- */
 
         .glass-card {{
@@ -403,7 +423,7 @@ def apply_glass_theme() -> None:
 
         .glass-card:hover {{
             border-color: var(--glass-border-hover);
-            box-shadow: 0 0 24px rgba(95,212,255,0.08);
+            box-shadow: 0 0 28px rgba(140,170,238,0.08);
         }}
 
         .glass-card-label {{
@@ -417,7 +437,7 @@ def apply_glass_theme() -> None:
         }}
 
         /* -------------------------------------------------------------
-           Кастомный разделитель — тонкий луч с затуханием по краям
+           Разделитель
         ------------------------------------------------------------- */
 
         .glass-divider {{
@@ -444,13 +464,6 @@ def apply_glass_theme() -> None:
 # ---------------------------------------------------------------------------
 
 def signal_indicator(label: str, value, tone: str = "auto", threshold_low: int = 1100, threshold_high: int = 1400) -> None:
-    """
-    Рисует рейтинг как светящийся индикатор сигнала (точка + значение).
-
-    tone: "blue" | "red" | "dim" | "auto"
-      "auto" выбирает цвет по числовому значению value относительно
-      threshold_low / threshold_high (полезно для Elo-рейтингов).
-    """
     if tone == "auto":
         try:
             numeric = float(value)
@@ -476,7 +489,6 @@ def signal_indicator(label: str, value, tone: str = "auto", threshold_low: int =
 
 
 def glass_card_open(label: str) -> None:
-    """Открывает стеклянную карточку. Обязательно закрыть glass_card_close()."""
     st.markdown(
         f'<div class="glass-card"><span class="glass-card-label">{label}</span>',
         unsafe_allow_html=True,
@@ -484,10 +496,8 @@ def glass_card_open(label: str) -> None:
 
 
 def glass_card_close() -> None:
-    """Закрывает стеклянную карточку, открытую glass_card_open()."""
     st.markdown("</div>", unsafe_allow_html=True)
 
 
 def glass_divider() -> None:
-    """Декоративный разделитель — светящийся луч (замена st.divider())."""
     st.markdown('<hr class="glass-divider" />', unsafe_allow_html=True)

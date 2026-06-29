@@ -3,9 +3,12 @@
         "rating": 0
     },
     "Pandas - Основы DataFrame": {
-        "rating": 3000
+        "rating": 0
     },
     "Python база": {
-        "rating": 2500
+        "rating": 0
+    },
+    "Numpy": {
+        "rating": 0
     }
 }
