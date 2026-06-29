@@ -9,17 +9,22 @@ from config.prompts import QUESTION_PROMPT
 history_manager — опциональная зависимость (по умолчанию None), которая
 не нужна для Theory/Practice (там вызывается как раньше, без истории).
 Используется только когда переданному prompt_template требуются
-плейсхолдеры difficulty/weak_points (сейчас — это ELO_QUESTION_PROMPT) —
-в этом случае generator_questions сам тянет последние 1-2 сессии по теме,
-выделяет значимые ошибки (score < 7) и передаёт их текстом в промпт.
+плейсхолдеры difficulty/weak_points/asked_questions (сейчас — это
+ELO_QUESTION_PROMPT) — в этом случае generator_questions сам тянет
+последние RECENT_SESSIONS_LOOKBACK сессий по теме и строит из них два
+блока:
+- weak_points — вопросы со значимыми ошибками (score < порога), чтобы
+  модель переспросила ту же суть другой формулировкой
+- asked_questions — тексты всех вопросов из этих сессий, чтобы модель
+  не повторяла их буквально в новой сессии
 """
 
 WEAK_POINTS_SCORE_THRESHOLD = 7   # результаты со score >= этого порога не считаются слабым местом
-WEAK_POINTS_SESSIONS_LOOKBACK = 2  # сколько последних сессий по теме просматривать
+RECENT_SESSIONS_LOOKBACK = 2  # сколько последних сессий по теме просматривать (для weak_points И для asked_questions)
 
 
 class QuestionGenerator:
-    def __init__(self, llm_client, prompt_template=QUESTION_PROMPT, history_manager=None):
+    def __init__(self, llm_client, prompt_template=None, history_manager=None):
         self.llm = llm_client # Получение LLM клиента, название модели, температура. В общем нужный нам класс
         self.prompt_template = prompt_template # По умолчанию — промпт теории. Для тренажёра/Elo передаётся свой prompt_template
         self.history = history_manager # Нужен только если prompt_template ожидает weak_points (ELO_QUESTION_PROMPT)
@@ -45,6 +50,9 @@ class QuestionGenerator:
         if "weak_points" in required_vars:
             format_kwargs["weak_points"] = self._build_weak_points_block(topic)
 
+        if "asked_questions" in required_vars:
+            format_kwargs["asked_questions"] = self._build_asked_questions_block(topic)
+
         prompt = self.prompt_template.format(**format_kwargs) # Берём формат ответа который мы сохранили в PromptTemplate
 
         structured_llm = self.llm.get_structured_llm(QuestionSet) # Используем функцию построения ответа модели по нашей схеме, чтобы вызов был в виде JSON
@@ -54,7 +62,7 @@ class QuestionGenerator:
 
     def _build_weak_points_block(self, topic: str) -> str:
         """
-        Достаёт последние WEAK_POINTS_SESSIONS_LOOKBACK сессий по теме,
+        Достаёт последние RECENT_SESSIONS_LOOKBACK сессий по теме,
         отбирает результаты со score < WEAK_POINTS_SCORE_THRESHOLD (значимые
         ошибки) и формирует текстовый блок для промпта.
 
@@ -70,7 +78,7 @@ class QuestionGenerator:
             return "Прошлых сессий по этой теме не найдено."
 
         sessions = sorted(sessions, key=lambda s: s["finished_at"])
-        recent_sessions = sessions[-WEAK_POINTS_SESSIONS_LOOKBACK:]
+        recent_sessions = sessions[-RECENT_SESSIONS_LOOKBACK:]
 
         weak_results = []
         for session in recent_sessions:
@@ -93,5 +101,48 @@ class QuestionGenerator:
                 f"  Ошибки: {', '.join(result['mistakes']) if result['mistakes'] else '—'}\n"
                 f"  Фидбек: {result['feedback']}"
             )
+
+        return "\n".join(lines)
+
+    def _build_asked_questions_block(self, topic: str) -> str:
+        """
+        Достаёт последние RECENT_SESSIONS_LOOKBACK сессий по теме и
+        собирает тексты ВСЕХ вопросов из них (независимо от score) —
+        формирует текстовый блок-антиповтор для промпта.
+
+        Цель — не дать LLM сгенерировать буквально тот же вопрос или
+        вопрос с минимальной перефразировкой, который пользователь уже
+        видел в последних сессиях по этой теме.
+
+        Если history_manager не передан или истории по теме нет —
+        возвращает нейтральную фразу (промпту нечего избегать).
+        """
+        if self.history is None:
+            return "Вопросов из прошлых сессий нет — ограничений на формулировки нет."
+
+        sessions = self.history.get_topic_sessions(topic)
+        if not sessions:
+            return "Вопросов из прошлых сессий нет — ограничений на формулировки нет."
+
+        sessions = sorted(sessions, key=lambda s: s["finished_at"])
+        recent_sessions = sessions[-RECENT_SESSIONS_LOOKBACK:]
+
+        asked_questions = []
+        for session in recent_sessions:
+            for result in session["results"]:
+                question_text = result.get("question")
+                if question_text:
+                    asked_questions.append(question_text)
+
+        if not asked_questions:
+            return "Вопросов из прошлых сессий нет — ограничений на формулировки нет."
+
+        lines = [
+            "Вопросы, которые пользователь уже видел в последних сессиях по этой теме — "
+            "НЕ повторяй их и не задавай вопрос с минимальной перефразировкой того же смысла, "
+            "придумай новые формулировки и, по возможности, новые аспекты темы:"
+        ]
+        for question_text in asked_questions:
+            lines.append(f"- {question_text}")
 
         return "\n".join(lines)

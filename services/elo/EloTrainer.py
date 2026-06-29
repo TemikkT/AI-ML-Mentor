@@ -155,15 +155,19 @@ class EloTrainer:
         self.session.finished_at = datetime.now()
 
         if not self.session.results:
-            # Пользователь не ответил ни на один вопрос —
-            # такую сессию не сохраняем ни в один из журналов.
+            print(f"[DEBUG finish_session] Нет результатов — пропускаем сохранение")
             return self.session
 
         self.session.average_score = (sum(r.score for r in self.session.results) / len(self.session.results))
 
-        # Сессия пишется в ОБА журнала: общий (для будущего Interviewer)
-        # и отдельный elo-журнал (для подсветки слабых мест внутри Elo-режима).
+        print(f"[DEBUG finish_session] Сохраняю: {len(self.session.results)} результатов, средний {self.session.average_score}")
+        print(f"[DEBUG finish_session] history file: {self.history.file_path}")
+        print(f"[DEBUG finish_session] history_elo file: {self.history_elo.file_path}")
+
         self.history.save_session(self.session)
         self.history_elo.save_session(self.session)
+
+        print(f"[DEBUG finish_session] После сохранения history size: {len(self.history.load_history())}")
+        print(f"[DEBUG finish_session] После сохранения history_elo size: {len(self.history_elo.load_history())}")
 
         return self.session

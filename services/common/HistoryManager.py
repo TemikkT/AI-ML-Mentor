@@ -12,7 +12,7 @@ from schemas.training_result import QuestionResult, TrainingSession
 """
 
 class HistoryManager:
-    def __init__(self, file_path: str = "data/history.json"): # получение файла со всеми сессиями, историей обучения
+    def __init__(self, file_path: str = "app/data/history.json"): # получение файла со всеми сессиями, историей обучения
         self.file_path = Path(file_path) 
 
         if not self.file_path.exists(): # если файл не существует, то осздаём его
@@ -48,6 +48,22 @@ class HistoryManager:
             for session in history
             if session["topic"] == topic
         ]
+    
+    def get_last_sessions(self, topic: str, last_n_sessions: int | None = None) -> list:
+        """
+        Получение последних тем для отработки плохих вопросов 
+        или чтобы исключить повторение вопросов
+        """
+
+        sessions = self.get_topic_sessions(topic)
+        sessions = sorted(sessions, key=lambda s: s["finished_at"])
+
+        if last_n_sessions is not None:
+            sessions = sessions[-last_n_sessions:]
+            return sessions
+        else:
+            return None
+
 
     def get_topic_scores(self, topic: str, last_n_sessions: int | None = None) -> list[int]:
         """
