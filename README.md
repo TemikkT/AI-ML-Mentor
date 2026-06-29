@@ -10,7 +10,7 @@
 ### 1. Клонируйте репозиторий
 
 ```bash
-git clone <your-repo-url>
+git clone <repo-url>
 cd AI-ML-Mentor
 ```
 
