@@ -22,15 +22,20 @@ obsidian_path = r"C:\Users\user\Documents\obsidian"
 
 ELO_TOPICS_ORDER = [
     {"topic": "Python база", "unlock_threshold": 400},
+    {"topic": "Numpy", "unlock_threshold": 400},
     {"topic": "Статистика", "unlock_threshold": 400},
     {"topic": "Pandas - Основы DataFrame", "unlock_threshold": 400},
     {"topic": "SQL - Postgres", "unlock_threshold": 400},
+    {"topic": "Python ООП", "unlock_threshold": 400},
     {"topic": "Работа с Git и GitHub", "unlock_threshold": 300},
 
+
+    {"topic": "Линейная регрессия", "unlock_threshold": 300},
     {"topic": "Метрики регрессии", "unlock_threshold": 300},
     {"topic": "Логистическая регрессия", "unlock_threshold": 400},
     {"topic": "Регуляризация - Линейная регрессия", "unlock_threshold": 400},
     {"topic": "Метрики классификации", "unlock_threshold": 300},
+    {"topic": "Sklearn - база", "unlock_threshold": 300},
     {"topic": "KNN ближайшие соседи", "unlock_threshold": 400},
     {"topic": "Функции активации и функции потерь", "unlock_threshold": 400},
     {"topic": "SVM Метод опорных векторов", "unlock_threshold": 400},
@@ -41,12 +46,17 @@ ELO_TOPICS_ORDER = [
     {"topic": "K-means Кластеризация", "unlock_threshold": 400},
     {"topic": "Иерархическая кластеризация", "unlock_threshold": 400},
 
-    {"topic": "Нейронные сети", "unlock_threshold": 400},
+
+    {"topic": "PyTorch база", "unlock_threshold": 400},
     {"topic": "Обучение нейронных сетей back propagation", "unlock_threshold": 400},
+    {"topic": "Регуляризация и трюки обучения", "unlock_threshold": 400},
     {"topic": "Оптимизаторы под функции потерь", "unlock_threshold": 400},
 
+
     {"topic": "Сверточные нейронные сети (CNN)", "unlock_threshold": 400},
+    {"topic": "Transfer Learning", "unlock_threshold": 400},
     {"topic": "YOLO модель, что умеет и как работать", "unlock_threshold": 400},
+    {"topic": "Yolo Код", "unlock_threshold": 400},
 
     {"topic": "NLP Извлечение признаков", "unlock_threshold": 400},
     {"topic": "NLP Трансформер", "unlock_threshold": 400},
@@ -92,6 +102,7 @@ PRACTICE_DIFFICULTY_RATING_BOUNDS = {
 EXECUTABLE_TOPICS = [
     "Pandas - Основы DataFrame",
     "Python база",
+    "Numpy"
 ]
  
 practice_history_path = "data/history_practice.json"
@@ -104,4 +115,5 @@ PRACTICE_TOPICS = [
     "SQL - Postgres",
     "Pandas - Основы DataFrame",
     "Python база",
+    "Numpy"
 ]

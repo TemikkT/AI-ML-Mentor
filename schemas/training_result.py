@@ -22,6 +22,9 @@ class QuestionResult(BaseModel):
     mistakes: list[str]
     feedback: str
 
+    question_hash: str = ""
+    mastered: bool = False
+
     timestamp: datetime = Field(default_factory=datetime.now)
 
 

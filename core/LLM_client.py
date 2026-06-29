@@ -20,7 +20,7 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 
 class LLMClient():
-    def __init__(self, model_name: str, temperature: float = 0.3):
+    def __init__(self, model_name: str, temperature: float = 0.8):
         self.model = ChatOpenRouter(model = model_name, temperature = temperature) # получаем модель и её темпарутур из прошлой функции
         self.api_key = os.getenv("OPENROUTER_API_KEY")
 
