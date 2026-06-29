@@ -17,8 +17,11 @@ unlock_threshold у последней темы ни на что не влияе
 Пороги выставлены ориентировочно и предназначены для ручной донастройки
 по мере использования — это НЕ финальные откалиброванные значения.
 """
+from pathlib import Path
+current_file = Path(__file__).resolve()
+project_root = current_file.parent.parent
 
-obsidian_path = r"C:\Users\user\Documents\obsidian"
+obsidian_path = rf"{project_root}/obsidian"
 
 ELO_TOPICS_ORDER = [
     {"topic": "Python база", "unlock_threshold": 400},

@@ -5,7 +5,7 @@
 """
 cache_path = "data/image_cache.json"
 
-obsidian_path = r"C:\Users\user\Documents\obsidian"
+obsidian_path = r"obsidian"
 
 DOMAIN_MAPPING = {
     "Classic Machine Learning": "Machine Learning",
